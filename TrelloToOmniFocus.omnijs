@@ -52,6 +52,8 @@
 	
 		// *****************************************************
 		// Mark all Trello tasks of all projects as complete
+		// Completes all tasks in the ofTrelloFolder (grabbed via .flattenedProjects) which start with "Trello" in the name
+
 		// *****************************************************
 		ofTrelloProjects.forEach(
 			function complete(project){
@@ -77,6 +79,11 @@
 			var myCards = JSON.parse(res.toString())
 			myCards.forEach(fetchBoard)
 		})
+
+		// first, get all of the cards in hand. 
+		// then, from each card, get the corrisponding board and list. 
+
+		/////////////////////////////
 		
 		function fetchBoard(card){
 			var the_url = URL.fromString(
@@ -99,28 +106,55 @@
 			})
 		}
 
+		//////////////////////////////////////
+
+		// Now, with the card, the board, and the list in hand, run the processCard function.
+
+
 		function processCard(card, board, list){
+			// Basically, this function takes a specific card board list tuple and ensures that omnifocus is duplicating that as a task project tag tuple in omnifocus
+			///////////////////////////////////////////////////////
 			//console.log(board.name + ' ' + list.name + ' ' + card.name)
-			
-			var projectName = board.name
+
+			//// Grab the names of the project and task that represnt this card and board in omnifocus.
+
+			var projectName = board.name      
 			var taskName = "Trello : " + list.name + " : " + card.name
+
 			
+			/////////////////////////////////////////////////////
+
 			// Find the corresponding project in OF, create it if it doesn't exist
+
+			// this first function is used as a filter, to grab only the project with the matching board #
 			function projectHasID(project){
 				return project.note.startsWith("Trello Board #" + board.id)
 			}
 			var project = ofTrelloFolder.flattenedProjects.find(projectHasID)
+
+			// if no project is found to match the board in Trello, then create a project in the choosen folder. 
+			// Fill the projects notes field. 
 			if (project == null) {
 				project = new Project(projectName, ofTrelloFolder)
 				project.note = "Trello Board #" + board.id + "\n" +
 					"Board : " + board.url + "\n" +
 					"--------------------------------"
-			} else {
+			} 
+			
+			// Otherwise (if a project representing this board is found) then update the project's name based on the boards current name 
+			// (the board's name may have changed, since we are matching these based on the ID of the board and not the name.)
+
+			// this also reveals part of the mechanic of how this script works—-since at the start everything is marked complete, then that is the accounting of items for which the program then marks each incomplete as they are accounted for. 
+			else {
 				project.name = projectName
 				project.markIncomplete()
 			}
 
+			//////////////////////////////////////////////////
+
 			// Find the corresponding task in OmniFocus, create it if it doesn't exist
+
+			// Similar to the above function for processing the projects, this function is used as a filter to find cards with the matching card ID. 
 			function taskHasID(task){
 				return task.note.startsWith("Trello Card #" + card.id)
 			}
@@ -185,5 +219,3 @@
 	
 	return action;
 })();
-
-	
