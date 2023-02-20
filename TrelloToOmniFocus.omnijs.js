@@ -173,13 +173,8 @@
 			} else {
 				for (i in foundInOmni) {
 					obj = foundInOmni[i];
-					obj.name = card.name;
-					if (card.due == null) {
-						obj.dueDate = null;
-					} else {
-						obj.dueDate = new Date(card.due);
-					}
-					obj.note =
+					trelloNotes =
+						card.name +
 						"Trello Card #" +
 						card.id +
 						"\n" +
@@ -187,6 +182,22 @@
 						card.url +
 						"\n" +
 						"--------------------------------";
+					if (card.due == null) {
+						obj.dueDate = null;
+					} else {
+						obj.dueDate = new Date(card.due);
+					}
+					if (card.members) {
+						trelloNotes += "\nMembers : ";
+						card.members.forEach(function (member) {
+							trelloNotes += member.fullName + " ";
+						});
+					}
+					obj.note =
+						trelloNotes +
+						"\n" +
+						obj.note.split("--------------------------------")[1];
+
 					obj.markIncomplete();
 				}
 			}
